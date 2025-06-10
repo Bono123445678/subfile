@@ -2,6 +2,7 @@ import json
 import time
 import random
 import os
+import requests
 
 MAX_RETRIES = 3
 
@@ -25,11 +26,23 @@ def simulate_article_visit(url, proxy=None):
         try:
             if proxy:
                 print(f"[👣][Attempt {attempt}] Visiting {url} using proxy {proxy}")
+                proxies = {
+                    "http": proxy,
+                    "https": proxy,
+                }
             else:
                 print(f"[👣][Attempt {attempt}] Visiting {url} without proxy")
-            time.sleep(random.uniform(2, 5))
-            print(f"[✅] Successfully visited {url}")
-            return True
+                proxies = None
+
+            # مثال بسيط لزيارة الصفحة (GET request)
+            response = requests.get(url, proxies=proxies, timeout=10)
+            if response.status_code == 200:
+                time.sleep(random.uniform(2, 5))  # محاكاة وقت قراءة
+                print(f"[✅] Successfully visited {url}")
+                return True
+            else:
+                print(f"[❌] Failed to visit article, status code: {response.status_code}")
+                time.sleep(2)
         except Exception as e:
             print(f"[❌] Error visiting article (attempt {attempt}): {e}")
             time.sleep(2)
@@ -37,12 +50,34 @@ def simulate_article_visit(url, proxy=None):
     return False
 
 def post_to_reddit(article_url, account):
+    token = account.get("reddit_token")
+    username = account.get("reddit_username")
+    if not token or not username:
+        print(f"[⚠️] Missing Reddit token or username for account {username}")
+        return False
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "User-Agent": f"script by /u/{username}"
+    }
+
+    data = {
+        "sr": "testsubreddit",  # استبدلها بالـ subreddit المناسب
+        "title": f"Check this article: {article_url}",
+        "url": article_url,
+        "kind": "link"
+    }
+
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            print(f"[📢][Attempt {attempt}] Reddit post by {account['reddit_username']}: {article_url}")
-            time.sleep(random.uniform(1, 3))
-            print(f"[✅] Successfully posted on Reddit: {article_url}")
-            return True
+            print(f"[📢][Attempt {attempt}] Reddit post by {username}: {article_url}")
+            response = requests.post("https://oauth.reddit.com/api/submit", headers=headers, data=data, timeout=10)
+            if response.status_code == 200 or response.status_code == 201:
+                print(f"[✅] Successfully posted on Reddit: {article_url}")
+                return True
+            else:
+                print(f"[❌] Reddit posting failed with status {response.status_code}: {response.text}")
+            time.sleep(2)
         except Exception as e:
             print(f"[❌] Reddit posting error (attempt {attempt}): {e}")
             time.sleep(2)
@@ -50,12 +85,35 @@ def post_to_reddit(article_url, account):
     return False
 
 def post_to_pinterest(article_url, account):
+    token = account.get("pinterest_token")
+    username = account.get("pinterest_username")
+    if not token or not username:
+        print(f"[⚠️] Missing Pinterest token or username for account {username}")
+        return False
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    # مثال payload للنشر (يحتاج تعديل حسب API الفعلي لـ Pinterest)
+    data = {
+        "board": "me/my-board",  # عدل حسب البورد المناسب
+        "note": f"Check out this article: {article_url}",
+        "link": article_url,
+        "image_url": "https://example.com/image.jpg"  # اختياري، حط صورة مناسبة أو احذف المفتاح
+    }
+
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            print(f"[📌][Attempt {attempt}] Pinterest post by {account['pinterest_username']}: {article_url}")
-            time.sleep(random.uniform(1, 3))
-            print(f"[✅] Successfully posted on Pinterest: {article_url}")
-            return True
+            print(f"[📌][Attempt {attempt}] Pinterest post by {username}: {article_url}")
+            response = requests.post("https://api.pinterest.com/v1/pins/", headers=headers, json=data, timeout=10)
+            if response.status_code in (200, 201):
+                print(f"[✅] Successfully posted on Pinterest: {article_url}")
+                return True
+            else:
+                print(f"[❌] Pinterest posting failed with status {response.status_code}: {response.text}")
+            time.sleep(2)
         except Exception as e:
             print(f"[❌] Pinterest posting error (attempt {attempt}): {e}")
             time.sleep(2)
