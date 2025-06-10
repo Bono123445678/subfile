@@ -1,30 +1,23 @@
-import json
-import asyncio
+ import json
 from proxy import ProxyManager
 from agent import Agent
+import asyncio
 
-# قراءة حسابات من ملف JSON
 def load_accounts(filepath="account.json"):
     with open(filepath, "r") as f:
         accounts = json.load(f)
     return accounts
 
 async def main():
-    # تحميل الحسابات
     accounts = load_accounts()
     print(f"Loaded {len(accounts)} accounts.")
 
-    # إنشاء مدير البروكسيات
     proxy_manager = ProxyManager()
-
-    # اجلب البروكسيات الصالحة من مصادر بروكسي متعددة
     print("Fetching and testing proxies...")
-    await proxy_manager.fetch_and_test_proxies()
+    proxy_manager.fetch_and_test_proxies()  # sync method, لا تستخدم await هنا
     valid_proxies = proxy_manager.get_valid_proxies()
     print(f"Valid proxies found: {len(valid_proxies)}")
 
-    # تحديد عدد الAgents المطلوب تشغيلهم
-    # مثلاً العدد الأصغر بين حسابات أو بروكسيات عشان ما نتجاوز العدد
     num_agents = min(len(accounts), len(valid_proxies))
     print(f"Running {num_agents} agents...")
 
@@ -35,7 +28,6 @@ async def main():
         agent = Agent(account=account, proxy=proxy)
         agents.append(agent)
 
-    # تشغيل كل الAgents بشكل متزامن
     await asyncio.gather(*(agent.run() for agent in agents))
 
 if __name__ == "__main__":
