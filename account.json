@@ -1,0 +1,16 @@
+{
+  "reddit_accounts": [
+    { "username": "redditor1", "password": "pass1" },
+    { "username": "redditor2", "password": "pass2" },
+    { "username": "redditor3", "password": "pass3" },
+    { "username": "redditor4", "password": "pass4" },
+    { "username": "redditor5", "password": "pass5" }
+  ],
+  "pinterest_accounts": [
+    { "username": "pinuser1", "password": "pinpass1" },
+    { "username": "pinuser2", "password": "pinpass2" },
+    { "username": "pinuser3", "password": "pinpass3" },
+    { "username": "pinuser4", "password": "pinpass4" },
+    { "username": "pinuser5", "password": "pinpass5" }
+  ]
+}
